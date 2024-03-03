@@ -45,16 +45,37 @@ async function VerifyUser(token)
     return null;
 }
 
+//This function takes in latitude and longitude of two location and returns the distance between them as the crow flies (in km)
+function calcCrow(lat1, lon1, lat2, lon2) 
+{
+    var R = 6371; // km
+    var dLat = toRad(lat2-lat1);
+    var dLon = toRad(lon2-lon1);
+    var lat1 = toRad(lat1);
+    var lat2 = toRad(lat2);
+
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2); 
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    var d = R * c;
+    return d;
+}
+
+// Converts numeric degrees to radians
+function toRad(Value) 
+{
+    return Value * Math.PI / 180;
+}
+
 app.post('/createlist/', async (req, res) => {
     try {
         const { token, description, phoneNumber, lat, long } = req.body;
 
         // Messy code
-        if (!token) return res.status(401).json({ error: 'Invalid Request' });
-        if (!description || description.length < 1  || description.length > 255) return res.status(401).json({ error: 'Invalid Request' });
-        if (!phoneNumber || phoneNumber.length < 1  || phoneNumber.length > 32) return res.status(401).json({ error: 'Invalid Request' });
-        if (!lat) return res.status(401).json({ error: 'Invalid Request' });
-        if (!long) return res.status(401).json({ error: 'Invalid Request' });
+        if (!token) return res.status(401).json({ error: 'Invalid Token' });
+        if (!description || description.length < 1  || description.length > 255) return res.status(401).json({ error: 'Invalid Description' });
+        if (!phoneNumber || phoneNumber.length < 1  || phoneNumber.length > 32) return res.status(401).json({ error: 'Invalid Phone Number' });
+        if (!lat) return res.status(401).json({ error: 'Invalid Lat' });
+        if (!long) return res.status(401).json({ error: 'Invalid Long' });
 
         // Verifying the users token and getting their username.
         const username = await VerifyUser(token);
@@ -67,12 +88,15 @@ app.post('/createlist/', async (req, res) => {
         // If it already exists delete it.
         if (listing)
         {
+            console.log("Removed old listing of user: " + username);
             await listing.deleteOne();
         }
 
         // Saves the listing to the database
         const new_listing = new Listing({ username, description: description, phoneNumber: phoneNumber, lat: lat, long: long });
         await new_listing.save();
+
+        console.log("Created new listing for user: " + username);
 
         return res.status(200).json({success: 'Successful'});
     }
@@ -100,6 +124,7 @@ app.post('/deletelist/', async (req, res) => {
         if (listing)
         {
             await listing.deleteOne();
+            console.log("Removed old listing of user: " + username);
         } 
         
         return res.status(200).json({success: 'Successful'});
@@ -107,6 +132,42 @@ app.post('/deletelist/', async (req, res) => {
     catch (error) 
     {
         return res.status(401).json({ error: 'Invalid Request' });
+    }
+})
+
+app.post('/search/', async (req, res) => {
+    try {
+        const cursor = Listing.find().select().cursor();
+
+        // Distance is km
+        const { lat, long, distance } = req.body;
+
+        var arr = [];
+        if (lat && long && distance)
+        {
+            // Checks if the listing is within the maximum distance set by the user.
+            for (let document = await cursor.next(); document != null; document = await cursor.next()) 
+            {
+                const calculated_distance = calcCrow(lat, long, document.lat, document.long);
+
+                if (calculated_distance < distance)
+                    arr.push(document);
+            }
+        }
+        else
+        {
+            // Just a global search.
+            for (let document = await cursor.next(); document != null; document = await cursor.next()) 
+            {
+                arr.push(document);
+            }
+        }
+
+        return res.status(200).json({listings: arr})
+    }
+    catch (error) 
+    {
+        return res.status(401).json({ error: 'Error with Search' });
     }
 })
 
