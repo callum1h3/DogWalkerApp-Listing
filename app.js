@@ -137,6 +137,7 @@ app.post('/deletelist/', async (req, res) => {
 
 app.post('/search/', async (req, res) => {
     try {
+        // Gets the database.
         const cursor = Listing.find().select().cursor();
 
         // Distance is km
