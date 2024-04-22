@@ -11,6 +11,14 @@ const axios = require('axios').default;
 const bodyParser = require('body-parser')
 app.use(bodyParser.urlencoded({ extended: true }))
 
+app.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, GET");
+    res.setHeader("Access-Control-Allow-Headers", "*");
+
+    next();
+});
+
 // Connect to the database.
 mongoose.connect(MONGO_URL);
 
