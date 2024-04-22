@@ -1,0 +1,26 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+env:
+  MONGO_URL: ${{secrets.MONGODB_URI}}
+  
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build -t emp .
+    - name: Tag the Docker image
+      run: docker tag emp callum1h3/dogwalkerapp-listing:latest
+    - name: Docker Login
+      run: docker login -u="${{ secrets.DOCKER_USERNAME }}" -p="${{ secrets.DOCKER_PASSWORD }}"
+    - name: docker push
+      run: docker push callum1h3/dogwalkerapp-listing:latest
