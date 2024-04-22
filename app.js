@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+const http = require('http');
 
 const MONGO_URL = process.env.MONGO_URL || 'mongodb+srv://callum1h1:eP1TLNS5QrSPMsIL@cluster0.eywkujf.mongodb.net/';
 const WEB_PORT = process.env.WEB_PORT || 3010;
@@ -180,7 +181,8 @@ app.post('/search/', async (req, res) => {
     }
 })
 
-app.listen(WEB_PORT, () => console.log('server ready'))
+const httpServer = http.createServer(app);
+httpServer.listen(3010, () => console.log('server ready'))
 
 
 
