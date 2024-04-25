@@ -6,6 +6,23 @@ const MONGO_URL = process.env.MONGO_URL || 'mongodb+srv://callum1h1:eP1TLNS5QrSP
 const WEB_PORT = process.env.WEB_PORT || 3010;
 const LOGIN_SERVER_URL = process.env.LOGIN_SERVER_URL || 'http://127.0.0.1:3005';
 
+const https = require('https');
+
+https.get('https://v4.ident.me/', res => {
+  let data = [];
+  const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date';
+
+  res.on('data', chunk => {
+    data.push(chunk);
+  });
+
+  res.on('end', () => {
+    LOGIN_SERVER_URL = 'http://'+data+':3005';
+  });
+}).on('error', err => {
+  console.log('Error: ', err.message);
+});
+
 const mongoose = require('mongoose');
 const axios = require('axios').default;
 
