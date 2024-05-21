@@ -18,6 +18,7 @@ https.get('https://v4.ident.me/', res => {
 
   res.on('end', () => {
     LOGIN_SERVER_URL = 'http://'+data+':3005';
+    console.log(LOGIN_SERVER_URL);
   });
 }).on('error', err => {
   console.log('Error: ', err.message);
