@@ -4,7 +4,7 @@ const http = require('http');
 
 const MONGO_URL = process.env.MONGO_URL || 'mongodb+srv://callum1h1:eP1TLNS5QrSPMsIL@cluster0.eywkujf.mongodb.net/';
 const WEB_PORT = process.env.WEB_PORT || 3010;
-const LOGIN_SERVER_URL = process.env.LOGIN_SERVER_URL || 'http://127.0.0.1:3005';
+var LOGIN_SERVER_URL = process.env.LOGIN_SERVER_URL || 'http://127.0.0.1:3005';
 
 const https = require('https');
 
